@@ -1,6 +1,6 @@
 trx = require('tiny-rx')
 Base = require('./base')
-class Canvas extends Base
+class Brush extends Base
     init: ->
 
-module.exports = Canvas
+module.exports = Brush
