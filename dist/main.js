@@ -1,12 +1,10 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-/**
+/*!
  * The buffer module from node.js, for the browser.
  *
- * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
- * License:  MIT
- *
- * `npm install buffer`
+ * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @license  MIT
  */
 
 var base64 = require('base64-js')
@@ -23,17 +21,14 @@ Buffer.poolSize = 8192
  *   === false   Use Object implementation (compatible down to IE6)
  */
 Buffer._useTypedArrays = (function () {
-   // Detect if browser supports Typed Arrays. Supported browsers are IE 10+,
-   // Firefox 4+, Chrome 7+, Safari 5.1+, Opera 11.6+, iOS 4.2+.
-  if (typeof Uint8Array !== 'function' || typeof ArrayBuffer !== 'function')
-    return false
-
-  // Does the browser support adding properties to `Uint8Array` instances? If
-  // not, then that's the same as no `Uint8Array` support. We need to be able to
-  // add all the node Buffer API methods.
-  // Bug in Firefox 4-29, now fixed: https://bugzilla.mozilla.org/show_bug.cgi?id=695438
+  // Detect if browser supports Typed Arrays. Supported browsers are IE 10+, Firefox 4+,
+  // Chrome 7+, Safari 5.1+, Opera 11.6+, iOS 4.2+. If the browser does not support adding
+  // properties to `Uint8Array` instances, then that's the same as no `Uint8Array` support
+  // because we need to be able to add all the node Buffer API methods. This is an issue
+  // in Firefox 4-29. Now fixed: https://bugzilla.mozilla.org/show_bug.cgi?id=695438
   try {
-    var arr = new Uint8Array(0)
+    var buf = new ArrayBuffer(0)
+    var arr = new Uint8Array(buf)
     arr.foo = function () { return 42 }
     return 42 === arr.foo() &&
         typeof arr.subarray === 'function' // Chrome 9-10 lack `subarray`
@@ -76,14 +71,14 @@ function Buffer (subject, encoding, noZero) {
   else if (type === 'string')
     length = Buffer.byteLength(subject, encoding)
   else if (type === 'object')
-    length = coerce(subject.length) // Assume object is an array
+    length = coerce(subject.length) // assume that object is array-like
   else
     throw new Error('First argument needs to be a number, array or string.')
 
   var buf
   if (Buffer._useTypedArrays) {
     // Preferred: Return an augmented `Uint8Array` instance for best performance
-    buf = augment(new Uint8Array(length))
+    buf = Buffer._augment(new Uint8Array(length))
   } else {
     // Fallback: Return THIS instance of Buffer (created by `new`)
     buf = this
@@ -92,9 +87,8 @@ function Buffer (subject, encoding, noZero) {
   }
 
   var i
-  if (Buffer._useTypedArrays && typeof Uint8Array === 'function' &&
-      subject instanceof Uint8Array) {
-    // Speed optimization -- use set if we're copying from a Uint8Array
+  if (Buffer._useTypedArrays && typeof subject.byteLength === 'number') {
+    // Speed optimization -- use set if we're copying from a typed array
     buf._set(subject)
   } else if (isArrayish(subject)) {
     // Treat array-ish objects as a byte array
@@ -397,7 +391,7 @@ Buffer.prototype.copy = function (target, target_start, start, end) {
     for (var i = 0; i < len; i++)
       target[i + target_start] = this[i + start]
   } else {
-    target._set(new Uint8Array(this.buffer, start, len), target_start)
+    target._set(this.subarray(start, start + len), target_start)
   }
 }
 
@@ -467,7 +461,7 @@ Buffer.prototype.slice = function (start, end) {
   end = clamp(end, len, len)
 
   if (Buffer._useTypedArrays) {
-    return augment(this.subarray(start, end))
+    return Buffer._augment(this.subarray(start, end))
   } else {
     var sliceLen = end - start
     var newBuf = new Buffer(sliceLen, undefined, true)
@@ -910,7 +904,7 @@ Buffer.prototype.inspect = function () {
  * Added in Node 0.12. Only available in browsers that support ArrayBuffer.
  */
 Buffer.prototype.toArrayBuffer = function () {
-  if (typeof Uint8Array === 'function') {
+  if (typeof Uint8Array !== 'undefined') {
     if (Buffer._useTypedArrays) {
       return (new Buffer(this)).buffer
     } else {
@@ -935,9 +929,9 @@ function stringtrim (str) {
 var BP = Buffer.prototype
 
 /**
- * Augment the Uint8Array *instance* (not the class!) with Buffer methods
+ * Augment a Uint8Array *instance* (not the Uint8Array class!) with Buffer methods
  */
-function augment (arr) {
+Buffer._augment = function (arr) {
   arr._isBuffer = true
 
   // save reference to original Uint8Array get/set methods before overwriting
@@ -1116,8 +1110,8 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/..\\node_modules\\browserify\\node_modules\\buffer\\index.js","/..\\node_modules\\browserify\\node_modules\\buffer")
-},{"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"base64-js":2,"buffer":1,"ieee754":3}],2:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/index.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer")
+},{"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"base64-js":2,"buffer":1,"ieee754":3}],2:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
@@ -1241,8 +1235,8 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	module.exports.fromByteArray = uint8ToBase64
 }())
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/..\\node_modules\\browserify\\node_modules\\buffer\\node_modules\\base64-js\\lib\\b64.js","/..\\node_modules\\browserify\\node_modules\\buffer\\node_modules\\base64-js\\lib")
-},{"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1}],3:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib/b64.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib")
+},{"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1}],3:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
@@ -1329,8 +1323,8 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/..\\node_modules\\browserify\\node_modules\\buffer\\node_modules\\ieee754\\index.js","/..\\node_modules\\browserify\\node_modules\\buffer\\node_modules\\ieee754")
-},{"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1}],4:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754/index.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754")
+},{"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1}],4:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
 
@@ -1393,8 +1387,8 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/..\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js","/..\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process")
-},{"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1}],5:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process")
+},{"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1}],5:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // Source: http://jsfiddle.net/vWx8V/
 // http://stackoverflow.com/questions/5603195/full-list-of-javascript-keycodes
@@ -1535,8 +1529,8 @@ for (var alias in aliases) {
   codes[alias] = aliases[alias]
 }
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/..\\node_modules\\keycode\\index.js","/..\\node_modules\\keycode")
-},{"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1}],6:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/keycode/index.js","/../node_modules/keycode")
+},{"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1}],6:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /**
  * @license
@@ -8324,8 +8318,8 @@ for (var alias in aliases) {
   }
 }.call(this));
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/..\\node_modules\\lodash\\dist\\lodash.js","/..\\node_modules\\lodash\\dist")
-},{"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1}],7:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/lodash/dist/lodash.js","/../node_modules/lodash/dist")
+},{"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1}],7:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 
 /*
@@ -8483,12 +8477,6 @@ Property = (function(_super) {
     if (initialValue == null) {
       initialValue = 0;
     }
-    if (aggregator !== void 0 && !isFunction(aggregator)) {
-      initialValue = aggregator;
-    }
-    if (subscribe !== void 0 && !isFunction(subscribe)) {
-      initialValue = subscribe;
-    }
     self = this;
     this._initialValue = initialValue;
     this._value = clone(initialValue);
@@ -8580,22 +8568,13 @@ EventStream = (function(_super) {
   EventStream.prototype.merge = function(stream) {
     var self;
     self = this;
-    if (!isArray(stream)) {
-      stream = [stream];
-    }
     return new EventStream(function(cb) {
-      var s, _i, _len, _results;
       self.subscribe(function(e) {
         return cb(e);
       });
-      _results = [];
-      for (_i = 0, _len = stream.length; _i < _len; _i++) {
-        s = stream[_i];
-        _results.push(s.subscribe(function(e) {
-          return cb(e);
-        }));
-      }
-      return _results;
+      return stream.subscribe(function(e) {
+        return cb(e);
+      });
     });
   };
 
@@ -8609,7 +8588,7 @@ applyMapping = function(subscriber, cb, mapping) {
     return subscriber(function(e) {
       return cb(mapping(e));
     });
-  } else {
+  } else if (isString(mapping) || isNumber(mapping)) {
     return subscriber(function(e) {
       return cb(mapping);
     });
@@ -8617,7 +8596,6 @@ applyMapping = function(subscriber, cb, mapping) {
 };
 
 clone = function(obj) {
-  assertNotNull(obj);
   return JSON.parse(JSON.stringify(obj));
 };
 
@@ -8850,16 +8828,18 @@ if (typeof module !== "undefined" && module !== null) {
   window.trx = trx;
 }
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/..\\node_modules\\tiny-rx\\dist\\trx.js","/..\\node_modules\\tiny-rx\\dist")
-},{"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1}],8:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/tiny-rx/dist/trx.js","/../node_modules/tiny-rx/dist")
+},{"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1}],8:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-var Base;
+var Base,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 Base = (function() {
   function Base(width, height, canvas) {
     this.width = width;
     this.height = height;
     this.canvas = canvas;
+    this.putPixelData = __bind(this.putPixelData, this);
     if (!this.width || !this.height) {
       this.width = window.innerWidth;
       this.height = window.innerHeight;
@@ -8874,8 +8854,78 @@ Base = (function() {
     this.canvas.width = this.width;
     this.canvas.height = this.height;
     this.context = this.canvas.getContext('2d');
+    this.imgData = this.context.getImageData(0, 0, this.width, this.height);
     this.init();
   }
+
+  Base.prototype.drawPixel = function(x, y, r, g, b, a) {
+    if (r == null) {
+      r = 0;
+    }
+    if (g == null) {
+      g = 0;
+    }
+    if (b == null) {
+      b = 0;
+    }
+    if (a == null) {
+      a = 255;
+    }
+    this.context.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    this.context.fillRect(x, y, 1, 1);
+    return this.imgData = this.context.getImageData(0, 0, this.width, this.height);
+  };
+
+  Base.prototype.getPixelData = function(x, y, width, height) {
+    var dstoffset, imgData, row, srcoffset;
+    if (x == null) {
+      x = 0;
+    }
+    if (y == null) {
+      y = 0;
+    }
+    if (width == null) {
+      width = this.width;
+    }
+    if (height == null) {
+      height = this.height;
+    }
+    imgData = {
+      width: width,
+      height: height,
+      data: new Uint8ClampedArray(width * height * 4)
+    };
+    row = 0;
+    srcoffset = (x + (y * this.width)) * 4;
+    dstoffset = 0;
+    while (row < height) {
+      imgData.data.set(this.imgData.data.subarray(srcoffset, srcoffset + width * 4), dstoffset);
+      srcoffset += this.width * 4;
+      dstoffset += width * 4;
+      ++row;
+    }
+    return imgData;
+  };
+
+  Base.prototype.putPixelData = function(src, x, y, width, height) {
+    var dstoffset, row, srcoffset;
+    if (x == null) {
+      x = 0;
+    }
+    if (y == null) {
+      y = 0;
+    }
+    row = 0;
+    srcoffset = 0;
+    dstoffset = (x + (y * this.width)) * 4;
+    while (row < height) {
+      this.imgData.data.set(src.data.subarray(srcoffset, srcoffset + width * 4), dstoffset);
+      dstoffset += this.width * 4;
+      srcoffset += width * 4;
+      ++row;
+    }
+    return this;
+  };
 
   return Base;
 
@@ -8884,10 +8934,11 @@ Base = (function() {
 module.exports = Base;
 
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/base.coffee","/")
-},{"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1}],9:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/base.coffee","/")
+},{"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1}],9:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 var Base, Brush, trx,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -8899,10 +8950,21 @@ Brush = (function(_super) {
   __extends(Brush, _super);
 
   function Brush() {
+    this.init = __bind(this.init, this);
     return Brush.__super__.constructor.apply(this, arguments);
   }
 
-  Brush.prototype.init = function() {};
+  Brush.prototype.init = function() {
+    this.x = 0;
+    this.y = 0;
+    this.moveX = 0;
+    return this.moveY = 0;
+  };
+
+  Brush.prototype.update = function() {
+    this.x += this.moveX;
+    return this.y += this.moveY;
+  };
 
   return Brush;
 
@@ -8911,10 +8973,11 @@ Brush = (function(_super) {
 module.exports = Brush;
 
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/brush.coffee","/")
-},{"./base":8,"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1,"tiny-rx":7}],10:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/brush.coffee","/")
+},{"./base":8,"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1,"tiny-rx":7}],10:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-var Base, Canvas, trx,
+var Base, Brush, Canvas, trx,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -8922,14 +8985,85 @@ trx = require('tiny-rx');
 
 Base = require('./base');
 
+Brush = require('./brush');
+
 Canvas = (function(_super) {
   __extends(Canvas, _super);
 
   function Canvas() {
+    this.createBrush = __bind(this.createBrush, this);
     return Canvas.__super__.constructor.apply(this, arguments);
   }
 
-  Canvas.prototype.init = function() {};
+  Canvas.prototype.init = function() {
+    return this.brushes = [];
+  };
+
+  Canvas.prototype.alphablend = function(src, dst, alpha) {
+    return alpha * src + (1 - alpha) * dst | 0;
+  };
+
+  Canvas.prototype.avgblend = function(src, dst) {
+    return (src + dst) / 2.0 | 0;
+  };
+
+  Canvas.prototype.scrblend = function(src, dst) {
+    return 255.0 * (1 - (1 - src / 255.0) * (1 - dst / 255.0)) | 0;
+  };
+
+  Canvas.prototype.opacityBlend = function(src, dst) {
+    var r;
+    r = src + dst;
+    if (r > 255) {
+      return 255;
+    } else {
+      return r;
+    }
+  };
+
+  Canvas.prototype.createBrush = function(width, height) {
+    var b;
+    if (width == null) {
+      width = 100;
+    }
+    if (height == null) {
+      height = 100;
+    }
+    b = new Brush(width, height);
+    b.x = this.width / 2 - b.width / 2;
+    b.y = this.height / 2 - b.height / 2;
+    this.brushes.push(b);
+    return b;
+  };
+
+  Canvas.prototype.compositeBlock = function(src, dst, bmode) {
+    var i, _i, _ref;
+    for (i = _i = 0, _ref = src.length; _i <= _ref; i = _i += 4) {
+      dst[i] = bmode(src[i], dst[i]);
+      dst[i + 1] = bmode(src[i + 1], dst[i + 1]);
+      dst[i + 2] = bmode(src[i + 2], dst[i + 2]);
+      dst[i + 3] = this.opacityBlend(src[i + 3], dst[i + 3]);
+    }
+    return this;
+  };
+
+  Canvas.prototype.paint = function() {
+    var b, dst, src, x, y, _i, _len, _ref;
+    _ref = this.brushes;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      b = _ref[_i];
+      x = b.x;
+      y = b.y;
+      src = b.getPixelData();
+      dst = this.getPixelData(x, y, b.width, b.height);
+      this.compositeBlock(src.data, dst.data, this.avgblend);
+      console.log(b.width, b.height);
+      this.putPixelData(dst, x, y, b.width, b.height);
+      console.log(dst);
+      b.update();
+    }
+    return this.context.putImageData(this.imgData, 0, 0);
+  };
 
   return Canvas;
 
@@ -8938,8 +9072,8 @@ Canvas = (function(_super) {
 module.exports = Canvas;
 
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/canvas.coffee","/")
-},{"./base":8,"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1,"tiny-rx":7}],11:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/canvas.coffee","/")
+},{"./base":8,"./brush":9,"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1,"tiny-rx":7}],11:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = {
   mouseToScreen: function(xmouse, ymouse) {
@@ -8953,10 +9087,10 @@ module.exports = {
 };
 
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/helper.coffee","/")
-},{"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1}],12:[function(require,module,exports){
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/helper.coffee","/")
+},{"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1}],12:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-var Brush, Canvas, brushes, canvas, eventHost, h, isDrawing, isShift, key, keyCombinations, selectedBrush, trx, _;
+var Brush, Canvas, brushes, canvas, eventHost, h, imgd, isDrawing, isShift, key, keyCombinations, keypress, keys, paste, selectedBrush, trx, _;
 
 trx = require('tiny-rx');
 
@@ -8976,6 +9110,8 @@ brushes = [];
 
 selectedBrush = void 0;
 
+imgd = canvas.context.createImageData(canvas.width, canvas.height);
+
 eventHost = document.body;
 
 isDrawing = trx.fromDomEvent(['mousedown', 'mouseup'], eventHost).createProperty(function(memo, e) {
@@ -8994,28 +9130,56 @@ isShift = trx.fromDomEvent(['keydown'], eventHost).createProperty(function(memo,
   }
 });
 
-keyCombinations = trx.fromDomEvent('keyup', eventHost).map(function(e) {
+keys = trx.fromDomEvent('keyup', eventHost).map(function(e) {
   return key(e.keyCode);
-}).createHistory(2);
+});
+
+keypress = trx.fromDomEvent('keypress', eventHost).map(function(e) {
+  return key(e.keyCode);
+});
+
+paste = trx.fromDomEvent('paste', eventHost).map(function(e) {
+  if (e.clipboardData && e.clipboardData.items) {
+    return console.log(e.clipboardData.items[0].getAsString());
+  }
+});
+
+keyCombinations = keys.createHistory(2);
 
 keyCombinations.filter(function(e) {
-  console.log(e.join(''));
   return e.join('') === 'nb';
 }).subscribe(function(e) {
-  var brush;
-  console.log('new brush');
   keyCombinations.reset();
-  brush = new Brush;
-  brushes.push(brush);
-  return selectedBrush = brush;
+  return selectedBrush = canvas.createBrush();
 });
 
 trx.fromDomEvent('mousemove', eventHost).filter(function() {
   return isDrawing.value() && selectedBrush;
 }).subscribe(function(e) {
-  return console.log(e.clientX, e.clientY);
+  return selectedBrush.drawPixel(e.clientX, e.clientY);
+});
+
+keypress.filter(function(key) {
+  return key === 'f1' && canvas.brushes.length > 0;
+}).subscribe(function() {
+  return canvas.paint();
+});
+
+keys.filter(function(key) {
+  return selectedBrush && key === 'up' || key === 'down' || key === 'left' || key === 'right';
+}).subscribe(function(key) {
+  switch (key) {
+    case 'up':
+      return selectedBrush.moveY--;
+    case 'down':
+      return selectedBrush.moveY++;
+    case 'left':
+      return selectedBrush.moveX--;
+    case 'right':
+      return selectedBrush.moveX++;
+  }
 });
 
 
-}).call(this,require("C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/main.coffee","/")
-},{"./brush":9,"./canvas":10,"./helper.coffee":11,"C:\\projects\\keypainter\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":4,"buffer":1,"keycode":5,"lodash":6,"tiny-rx":7}]},{},[12])
+}).call(this,require("/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/main.coffee","/")
+},{"./brush":9,"./canvas":10,"./helper.coffee":11,"/Users/juliankrispel/projects/keypainter/node_modules/gulp-browserify/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":4,"buffer":1,"keycode":5,"lodash":6,"tiny-rx":7}]},{},[12])

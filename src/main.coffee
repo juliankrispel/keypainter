@@ -7,8 +7,11 @@ Canvas = require('./canvas')
 Brush = require('./brush')
 
 canvas = new Canvas
+#canvas.imgData.data.set(p.data)
 brushes = []
 selectedBrush = undefined
+
+imgd = canvas.context.createImageData(canvas.width, canvas.height)
 
 eventHost = document.body
 
@@ -22,26 +25,50 @@ isShift = trx.fromDomEvent(['keydown'], eventHost).createProperty((memo, e)->
     memo = isShiftDown if isShiftDown != memo
 )
 
+keys = trx.fromDomEvent('keyup', eventHost).map((e)-> key(e.keyCode))
+keypress = trx.fromDomEvent('keypress', eventHost).map((e)-> key(e.keyCode))
+paste = trx.fromDomEvent('paste', eventHost).map((e)-> 
+    if(e.clipboardData && e.clipboardData.items)
+        console.log e.clipboardData.items[0].getAsString()
+)
+
 #USE KEY COMBINATIONS FOR COMMANDS
-keyCombinations = trx.fromDomEvent('keyup', eventHost).map((e)-> key(e.keyCode)).createHistory(2)
+keyCombinations = keys.createHistory(2)
 
 keyCombinations.filter((e)-> 
-        console.log e.join('') 
         e.join('') == 'nb')
     .subscribe((e)-> 
-        console.log 'new brush'
         keyCombinations.reset()
-        brush = new Brush
-        brushes.push(brush)
-        selectedBrush = brush
+        selectedBrush = canvas.createBrush()
     )
 
 #DRAW ON BRUSH
 trx.fromDomEvent('mousemove', eventHost)
-    .filter(()-> isDrawing.value() && selectedBrush)
-    .subscribe((e)->
-        console.log e.clientX, e.clientY
+    .filter(()-> 
+        isDrawing.value() && selectedBrush
+    ).subscribe((e)->
+        selectedBrush.drawPixel(e.clientX, e.clientY)
     )
+
+keypress.filter((key)-> 
+    key == 'f1' && canvas.brushes.length > 0
+).subscribe(()->
+    canvas.paint()
+)
+
+keys.filter((key)-> 
+    selectedBrush &&
+    key == 'up' ||
+    key == 'down' ||
+    key == 'left' ||
+    key == 'right'
+).subscribe((key)->
+    switch key
+        when 'up' then selectedBrush.moveY--
+        when 'down' then selectedBrush.moveY++
+        when 'left' then selectedBrush.moveX--
+        when 'right' then selectedBrush.moveX++
+)
 
 #
 #keys = trx.fromDomEvent(['keydown', 'keyup'], document.body)
